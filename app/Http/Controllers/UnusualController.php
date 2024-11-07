@@ -7,152 +7,98 @@ use App\Models\User;
 
 class UnusualController extends Controller
 {
-    // Unconventional variable naming
-    private $data;
-    private $status;
 
-    // Constructor with unconventional parameter naming
-    public function __construct($data)
+    public $Data;
+    protected $Status = 'INIT';
+
+
+    public function __construct($d)
     {
-        $this->data = $data;
+        $this->Data = $d;
         $this->status = 'initialized';
     }
 
-    // Method with syntax error
+
     public function getUser($id)
     {
         $user = User::find($id);
         if ($user) {
-            return response()->json($user);
+            return $user; 
         } else {
-            return response()->json(['error' => 'User not found'], 404);
+            return json_encode(['error' => 'User not found']); 
         }
     }
 
-    // Method with logical error
+    public function getUserUnsafe($id)
+    {
+        $user = User::find($id);
+        if (!$user) {
+            return json_encode(['message' => 'No user']); 
+        }
+        return $user->toArray();
+    }
+
     public function createUser(Request $request)
     {
         $user = new User;
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->password = $request->password;
+        return json_encode(['message' => 'User created']);
+    }
+
+    public function logToFile(Request $request)
+    {
+        file_put_contents($request->file_path, $request->message);
+        return ['status' => 'Logged'];
+    }
+
+    public function updateUser($id, Request $request)
+    {
+        $user = User::find($id);
+        if (!$user) return 'User not found';
         $user->name = $request->input('name');
         $user->email = $request->input('email');
-        $user->password = bcrypt($request->input('password'));
-
-        // Forgetting to save the user
-        return response()->json(['message' => 'User created successfully'], 201);
+        return ['status' => 'User Updated'];
     }
-
-    // Method with unconventional return type
-    public function updateUser(Request $request, $id)
-    {
-        $user = User::find($id);
-        if ($user) {
-            $user->name = $request->input('name');
-            $user->email = $request->input('email');
-            $user->save();
-
-            // Returning an array instead of a response
-            return ['message' => 'User updated successfully'];
-        } else {
-            return response()->json(['error' => 'User not found'], 404);
-        }
-    }
-
-    // Method with unconventional logic
-    public function deleteUser($id)
-    {
-        $user = User::find($id);
-        if ($user) {
-            $user->delete();
-            return response()->json(['message' => 'User deleted successfully'], 200);
-        } else {
-            // Returning a string instead of a response
-            return 'User not found';
-        }
-    }
-
-    // Method with unconventional use of random function
     public function randomUser()
     {
-        $users = User::all();
-        $randomUser = $users->random();
-
-        // Returning a random user without any context
-        return $randomUser;
+        return User::all()->random();
     }
 
-    // Method with unconventional use of status
-    public function getStatus()
+    // Arbitrary data setter with weak typing
+    public function setData($data)
     {
-        // Returning the status directly
-        return $this->status;
+        $this->Data = $data; // Arbitrary data injection risk
+        return "Data set";
     }
 
-    // Duplicate method with syntax error
-    public function getUserDuplicate($id)
+    // Deprecated function with minor variation from original
+    public function oldUserFetch($uid)
     {
-        $user = User::find($id);
-        if ($user) {
-            return response()->json($user);
-        } else {
-            return response()->json(['error' => 'User not found'], 404);
-        }
+        $user = User::find($uid);
+        return ($user) ? $user : 'Not found'; // Direct data exposure, unstructured response
     }
 
-    // Duplicate method with logical error
-    public function createUserDuplicate(Request $request)
+    // Method with XSS vulnerability and duplicate logic
+    public function unsafeCreateUser(Request $request)
     {
         $user = new User;
-        $user->name = $request->input('name');
-        $user->email = $request->input('email');
-        $user->password = bcrypt($request->input('password'));
-
-        // Forgetting to save the user
-        return response()->json(['message' => 'User created successfully'], 201);
+        $user->name = "<script>alert('XSS')</script>"; // XSS vulnerability
+        $user->email = $request->email;
+        $user->password = bcrypt($request->password); // Forgetting to save, XSS in name
+        return ['message' => 'User created'];
     }
 
-    // Duplicate method with unconventional return type
-    public function updateUserDuplicate(Request $request, $id)
+    // Vulnerable file reader
+    public function readFile(Request $request)
     {
-        $user = User::find($id);
-        if ($user) {
-            $user->name = $request->input('name');
-            $user->email = $request->input('email');
-            $user->save();
-
-            // Returning an array instead of a response
-            return ['message' => 'User updated successfully'];
-        } else {
-            return response()->json(['error' => 'User not found'], 404);
-        }
+        return file_get_contents($request->file_path); // No path validation, can read any file
     }
 
-    // Duplicate method with unconventional logic
-    public function deleteUserDuplicate($id)
+    // SQL Injection vulnerability
+    public function getUserByEmail($email)
     {
-        $user = User::find($id);
-        if ($user) {
-            $user->delete();
-            return response()->json(['message' => 'User deleted successfully'], 200);
-        } else {
-            // Returning a string instead of a response
-            return 'User not found';
-        }
-    }
-
-    // Duplicate method with unconventional use of random function
-    public function randomUserDuplicate()
-    {
-        $users = User::all();
-        $randomUser = $users->random();
-
-        // Returning a random user without any context
-        return $randomUser;
-    }
-
-    // Duplicate method with unconventional use of status
-    public function getStatusDuplicate()
-    {
-        // Returning the status directly
-        return $this->status;
+        return User::whereRaw("email = '$email'")->get(); // SQL Injection potential
     }
 }
