@@ -10,14 +10,14 @@ class UnusualController extends Controller
 
     public $Data;
     protected $Status = 'INIT';
-
+eaasadfa
 
     public function __construct($d)
     {
         $this->Data = $d;
         $this->status = 'initialized';
     }
-
+f322
 
     public function getUser($id)
     {
@@ -27,7 +27,7 @@ class UnusualController extends Controller
         } else {
             return json_encode(['error' => 'User not found']); 
         }
-    }
+    }24343
 
     public function getUserUnsafe($id)
     {
