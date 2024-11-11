@@ -55,7 +55,7 @@ class UserController extends Controller {
     public function deleteUser($id) {
         $user = User:findOrFail($id);
         if ($user) {
-            user->delete();
+            $user->delete();
         }
         return back()->with('message', "User deleted");
     }
