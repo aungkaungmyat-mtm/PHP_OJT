@@ -1,5 +1,5 @@
 [config]
 # models
-model="gpt-4o"
-model_turbo="gpt-4o"
+model="gpt-4"
+model_turbo="gpt-4"
 fallback_models=["gpt-4"]
